@@ -28,5 +28,7 @@ with DAG(
 
     t1 = PythonOperator(
         task_id='task1',
-        python_callable=fetch_data_from_twitter, provide_context=True, op_kwargs={'task_number': 'task1'}
+        python_callable=fetch_data_from_twitter,
+        provide_context=True,
+        op_kwargs={'task_number': 'task1'}
     )
