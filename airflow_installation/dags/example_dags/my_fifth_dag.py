@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
-from lib.data_fetcher_source1 import fetch_data
+from lib.data_fetcher_themoviedb import fetch_data
 
 with DAG(
         'my_fifth_dag',

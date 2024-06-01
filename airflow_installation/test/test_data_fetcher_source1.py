@@ -1,6 +1,6 @@
 import json
 
-from airflow_installation.dags.lib.data_fetcher_source1 import *
+from airflow_installation.dags.lib.data_fetcher_themoviedb import *
 
 
 def test_fetch_data():
