@@ -11,3 +11,7 @@ export AIRFLOW_HOME=/home/orionvi/PycharmProjects/data-lake-project-2024/airflow
 export PYTHONPATH=/home/orionvi/PycharmProjects/data-lake-project-2024/.venv/bin/
 airflow standalone
 ```
+
+Options for local distributed storage:
+-
+-[MinIO](https://min.io/docs/minio/linux/developers/python/minio-py.html)
