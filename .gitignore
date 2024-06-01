@@ -1,3 +1,4 @@
 /.venv/
 /.idea/
 /airflow/logs/
+/airflow/airflow.db
