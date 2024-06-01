@@ -3,7 +3,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
-from lib.data_fetcher import fetch_data_from_twitter
+from lib.data_fetcher_source1 import fetch_data
 
 with DAG(
         'my_fifth_dag',
@@ -28,7 +28,7 @@ with DAG(
 
     t1 = PythonOperator(
         task_id='task1',
-        python_callable=fetch_data_from_twitter,
+        python_callable=fetch_data,
         provide_context=True,
         op_kwargs={'task_number': 'task1'}
     )
