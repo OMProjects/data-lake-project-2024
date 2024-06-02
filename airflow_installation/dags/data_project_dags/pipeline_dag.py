@@ -3,6 +3,9 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
+from lib.data_fetcher_theimdb import fetch_data_from_imdb
+from lib.raw_to_fmt_imdb import convert_raw_to_formatted_imdb
+
 with DAG(
         'pipeline_dag',
         default_args={
@@ -13,25 +16,27 @@ with DAG(
             'retries': 1,
             'retry_delay': timedelta(minutes=5),
         },
-        description='A first DAG',
+        description='The dag for the data project',
         schedule_interval=None,
         start_date=datetime(2021, 1, 1),
         catchup=False,
-        tags=['example'],
+        tags=['data_project_dag'],
 ) as dag:
     dag.doc_md = """
-       This is my fifth DAG in airflow_installation. It uses my custom made twitter func.
-       I can write documentation in Markdown here with **bold text** or __bold text__.
+       A dag with the pipeline for the data project
    """
+
 
     def launch_task(**kwargs):
         print("Hello Airflow - This is Task with task_number:", kwargs['task_name'])
 
-    source_to_raw_1 = PythonOperator(
+
+    source_to_raw_imdb = PythonOperator(
         task_id='source_to_raw_1',
-        python_callable=launch_task,
+        python_callable=fetch_data_from_imdb,
         provide_context=True,
-        op_kwargs={'task_name': 'source_to_raw_1'}
+        op_kwargs={'url': 'https://datasets.imdbws.com/title.ratings.tsv.gz',
+                   'data_entity_name': 'title.ratings.tsv.gz'}
     )
 
     source_to_raw_2 = PythonOperator(
@@ -41,11 +46,12 @@ with DAG(
         op_kwargs={'task_name': 'source_to_raw_1'}
     )
 
-    raw_to_formated_1 = PythonOperator(
+    raw_to_formated_imdb = PythonOperator(
         task_id='raw_to_formated_1',
-        python_callable=launch_task,
+        python_callable=convert_raw_to_formatted_imdb,
         provide_context=True,
-        op_kwargs={'task_name': 'raw_to_formated_1'}
+        op_kwargs={'file_name': 'title.ratings.tsv.gz',
+                   'data_entity_name': 'MovieRating'}
     )
 
     raw_to_formated_2 = PythonOperator(
@@ -69,11 +75,13 @@ with DAG(
         op_kwargs={'task_name': 'index_to_elastic'}
     )
 
-    source_to_raw_1.set_downstream(raw_to_formated_1)
-    source_to_raw_2.set_downstream(raw_to_formated_2)
 
-    produce_usage.set_upstream(raw_to_formated_1)
-    produce_usage.set_upstream(raw_to_formated_2)
+    def add_source_pipeline(source_task, transform_task, join_task):
+        source_task.set_downstream(transform_task)
+        join_task.set_upstream(transform_task)
+
+
+    add_source_pipeline(source_to_raw_imdb, raw_to_formated_imdb, produce_usage)
+    add_source_pipeline(source_to_raw_2, raw_to_formated_2, produce_usage)
 
     produce_usage.set_downstream(index_to_elastic)
-

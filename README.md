@@ -14,4 +14,4 @@ airflow standalone
 
 Options for local distributed storage:
 -
--[MinIO](https://min.io/docs/minio/linux/developers/python/minio-py.html)
+- [MinIO](https://min.io/docs/minio/linux/developers/python/minio-py.html)
