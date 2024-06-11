@@ -4,3 +4,4 @@
 /airflow_installation/airflow.db
 /airflow_installation/airflow-webserver.pid
 /airflow_installation/dags/lib/env.py
+/airflow_installation/airflow.cfg
