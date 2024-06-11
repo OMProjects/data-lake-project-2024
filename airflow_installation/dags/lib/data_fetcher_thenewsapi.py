@@ -10,11 +10,10 @@ HOME = os.path.expanduser('~')
 DATALAKE_ROOT_FOLDER = HOME + "/datalake/"
 
 
-def fetch_data_from_newsapi():
-    url = "https://newsapi.org/v2/top-headlines"
+def fetch_data_from_newsapi(url, data_entity_name, country):
 
     params = {
-        "country": "us",
+        "country": country,
         "category": "general",
         "apiKey": the_newsApi_api_key,
     }
@@ -22,7 +21,7 @@ def fetch_data_from_newsapi():
     response = requests.get(url, params=params)
     news = response.json()
 
-    store_newsapi_data(news)
+    store_newsapi_data(news, data_entity_name)
 
     # Mock Data JSON Dump:
     # data = response.json()
@@ -31,9 +30,9 @@ def fetch_data_from_newsapi():
     # return data
 
 
-def store_newsapi_data(news):
+def store_newsapi_data(news, data_entity_name):
     current_day = date.today().strftime("%Y%m%d")
-    TARGET_PATH = DATALAKE_ROOT_FOLDER + f"raw/newsapi/TopHeadlines/" + current_day + "/"
+    TARGET_PATH = DATALAKE_ROOT_FOLDER + f"raw/newsapi/" + data_entity_name + "/" + current_day + "/"
     if not os.path.exists(TARGET_PATH):
         os.makedirs(TARGET_PATH)
 

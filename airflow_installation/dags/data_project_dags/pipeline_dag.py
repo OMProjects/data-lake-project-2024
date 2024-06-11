@@ -3,8 +3,8 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
-from lib.data_fetcher_theimdb import fetch_data_from_imdb
-from lib.raw_to_fmt_imdb import convert_raw_to_formatted_imdb
+from lib.data_fetcher_thenewsapi import fetch_data_from_newsapi
+from lib.raw_to_fmt_newsapi import convert_raw_to_formatted_newsapi
 
 with DAG(
         'pipeline_dag',
@@ -31,12 +31,13 @@ with DAG(
         print("Hello Airflow - This is Task with task_number:", kwargs['task_name'])
 
 
-    source_to_raw_imdb = PythonOperator(
+    source_to_raw_newsapi = PythonOperator(
         task_id='source_to_raw_1',
-        python_callable=fetch_data_from_imdb,
+        python_callable=fetch_data_from_newsapi,
         provide_context=True,
-        op_kwargs={'url': 'https://datasets.imdbws.com/title.ratings.tsv.gz',
-                   'data_entity_name': 'title.ratings.tsv.gz'}
+        op_kwargs={'url': 'https://newsapi.org/v2/top-headlines',
+                   'data_entity_name': 'TopHeadlinesUS',
+                   'country': 'us'}
     )
 
     source_to_raw_2 = PythonOperator(
@@ -46,12 +47,12 @@ with DAG(
         op_kwargs={'task_name': 'source_to_raw_1'}
     )
 
-    raw_to_formated_imdb = PythonOperator(
+    raw_to_formated_newsapi = PythonOperator(
         task_id='raw_to_formated_1',
-        python_callable=convert_raw_to_formatted_imdb,
+        python_callable=convert_raw_to_formatted_newsapi,
         provide_context=True,
-        op_kwargs={'file_name': 'title.ratings.tsv.gz',
-                   'data_entity_name': 'MovieRating'}
+        op_kwargs={'file_name': 'newsapi.json',
+                   'data_entity_name': 'TopHeadlinesUS'}
     )
 
     raw_to_formated_2 = PythonOperator(
@@ -81,7 +82,7 @@ with DAG(
         join_task.set_upstream(transform_task)
 
 
-    add_source_pipeline(source_to_raw_imdb, raw_to_formated_imdb, produce_usage)
+    add_source_pipeline(source_to_raw_newsapi, raw_to_formated_newsapi, produce_usage)
     add_source_pipeline(source_to_raw_2, raw_to_formated_2, produce_usage)
 
     produce_usage.set_downstream(index_to_elastic)
