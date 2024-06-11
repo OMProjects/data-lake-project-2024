@@ -5,6 +5,7 @@ from airflow.operators.python import PythonOperator
 
 from lib.data_fetcher_theimdb import fetch_data_from_imdb
 from lib.raw_to_fmt_imdb import convert_raw_to_formatted_imdb
+from lib.data_fetcher_reddit import fetch_data_from_reddit_news_api
 
 with DAG(
         'pipeline_dag',
@@ -39,11 +40,15 @@ with DAG(
                    'data_entity_name': 'title.ratings.tsv.gz'}
     )
 
-    source_to_raw_2 = PythonOperator(
-        task_id='source_to_raw_2',
-        python_callable=launch_task,
+    source_to_raw_reddit = PythonOperator(
+        task_id='source_to_raw_reddit',
+        python_callable=fetch_data_from_reddit_news_api,
         provide_context=True,
-        op_kwargs={'task_name': 'source_to_raw_1'}
+        op_kwargs={
+            'task_name': 'source_to_raw_reddit',
+            'limit': 1,
+            'subreddit': 'news'
+        }
     )
 
     raw_to_formated_imdb = PythonOperator(
@@ -82,6 +87,6 @@ with DAG(
 
 
     add_source_pipeline(source_to_raw_imdb, raw_to_formated_imdb, produce_usage)
-    add_source_pipeline(source_to_raw_2, raw_to_formated_2, produce_usage)
+    add_source_pipeline(source_to_raw_reddit, raw_to_formated_2, produce_usage)
 
     produce_usage.set_downstream(index_to_elastic)
