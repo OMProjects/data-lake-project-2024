@@ -1,3 +1,4 @@
+import json
 import os
 from datetime import date
 
@@ -22,3 +23,12 @@ def convert_raw_to_formatted_newsapi(file_name, data_entity_name):
 
     final_df = pd.DataFrame(data=df.data)
     final_df.to_parquet(FORMATTED_TOPHEADLINES_FOLDER + parquet_file_name)
+
+
+def copy_convert_raw_to_formatted_newsapi(file_name):
+    with open(file_name, 'r') as file:
+        raw_df = json.load(file)
+
+    parquet_file_name = file_name.replace(".json", ".snappy.parquet")
+    final_df = pd.DataFrame(data=raw_df)
+    final_df.to_parquet(parquet_file_name, compression='snappy')
