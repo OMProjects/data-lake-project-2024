@@ -4,7 +4,7 @@ from airflow import DAG
 from airflow.operators.python import PythonOperator
 
 from lib.data_fetcher_thenewsapi import fetch_data_from_newsapi
-from lib.raw_to_fmt_newsapi import convert_raw_to_formatted_newsapi
+# from lib.raw_to_fmt_newsapi import convert_raw_to_formatted_newsapi
 
 with DAG(
         'pipeline_dag',
@@ -32,7 +32,7 @@ with DAG(
 
 
     source_to_raw_newsapi = PythonOperator(
-        task_id='source_to_raw_1',
+        task_id='source_to_raw_newsapi',
         python_callable=fetch_data_from_newsapi,
         provide_context=True,
         op_kwargs={'url': 'https://newsapi.org/v2/top-headlines',
@@ -47,12 +47,11 @@ with DAG(
         op_kwargs={'task_name': 'source_to_raw_1'}
     )
 
-    raw_to_formated_newsapi = PythonOperator(
+    raw_to_formated_1 = PythonOperator(
         task_id='raw_to_formated_1',
-        python_callable=convert_raw_to_formatted_newsapi,
+        python_callable=launch_task,
         provide_context=True,
-        op_kwargs={'file_name': 'newsapi.json',
-                   'data_entity_name': 'TopHeadlinesUS'}
+        op_kwargs={'task_name': 'raw_to_formated_1'}
     )
 
     raw_to_formated_2 = PythonOperator(
@@ -82,7 +81,7 @@ with DAG(
         join_task.set_upstream(transform_task)
 
 
-    add_source_pipeline(source_to_raw_newsapi, raw_to_formated_newsapi, produce_usage)
+    add_source_pipeline(source_to_raw_newsapi, raw_to_formated_1, produce_usage)
     add_source_pipeline(source_to_raw_2, raw_to_formated_2, produce_usage)
 
     produce_usage.set_downstream(index_to_elastic)
