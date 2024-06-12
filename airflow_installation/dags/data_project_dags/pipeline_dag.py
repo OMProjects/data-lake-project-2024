@@ -6,6 +6,7 @@ from airflow.operators.python import PythonOperator
 from lib.data_fetcher_theimdb import fetch_data_from_imdb
 from lib.raw_to_fmt_imdb import convert_raw_to_formatted_imdb
 from lib.data_fetcher_reddit import fetch_data_from_reddit_news_api
+from lib.raw_to_fmt_reddit import convert_raw_to_formatted_reddit
 
 with DAG(
         'pipeline_dag',
@@ -46,7 +47,7 @@ with DAG(
         provide_context=True,
         op_kwargs={
             'task_name': 'source_to_raw_reddit',
-            'limit': 1,
+            'limit': 10,
             'subreddit': 'news'
         }
     )
@@ -59,11 +60,15 @@ with DAG(
                    'data_entity_name': 'MovieRating'}
     )
 
-    raw_to_formated_2 = PythonOperator(
-        task_id='raw_to_formated_2',
-        python_callable=launch_task,
+    raw_to_formated_reddit = PythonOperator(
+        task_id='raw_to_formated_reddit',
+        python_callable=convert_raw_to_formatted_reddit,
         provide_context=True,
-        op_kwargs={'task_name': 'raw_to_formated_2'}
+        op_kwargs={
+            'task_name': 'raw_to_formated_reddit',
+            'file_name': 'reddit_news_posts.json',
+            'data_entity_name': 'NewsPostsReddit'
+        }
     )
 
     produce_usage = PythonOperator(
@@ -87,6 +92,6 @@ with DAG(
 
 
     add_source_pipeline(source_to_raw_imdb, raw_to_formated_imdb, produce_usage)
-    add_source_pipeline(source_to_raw_reddit, raw_to_formated_2, produce_usage)
+    add_source_pipeline(source_to_raw_reddit, raw_to_formated_reddit, produce_usage)
 
     produce_usage.set_downstream(index_to_elastic)
