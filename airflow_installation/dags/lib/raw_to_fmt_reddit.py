@@ -1,7 +1,6 @@
 import os
 import pandas as pd
 from datetime import date
-from textblob import TextBlob
 
 HOME = os.path.expanduser('~')
 DATALAKE_ROOT_FOLDER = HOME + "/datalake/"
