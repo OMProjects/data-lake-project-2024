@@ -3,11 +3,15 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
+
+from lib.data_fetcher_thenewsapi import fetch_data_from_newsapi
+# from lib.raw_to_fmt_newsapi import convert_raw_to_formatted_newsapi
 from lib.data_fetcher_theimdb import fetch_data_from_imdb
 from lib.fmt_to_enriched_reddit import fmt_to_enriched_reddit
 from lib.raw_to_fmt_imdb import convert_raw_to_formatted_imdb
 from lib.data_fetcher_reddit import fetch_data_from_reddit_news_api
 from lib.raw_to_fmt_reddit import convert_raw_to_formatted_reddit
+
 
 with DAG(
         'pipeline_dag',
@@ -34,12 +38,13 @@ with DAG(
         print("Hello Airflow - This is Task with task_number:", kwargs['task_name'])
 
 
-    source_to_raw_imdb = PythonOperator(
-        task_id='source_to_raw_1',
-        python_callable=fetch_data_from_imdb,
+    source_to_raw_newsapi = PythonOperator(
+        task_id='source_to_raw_newsapi',
+        python_callable=fetch_data_from_newsapi,
         provide_context=True,
-        op_kwargs={'url': 'https://datasets.imdbws.com/title.ratings.tsv.gz',
-                   'data_entity_name': 'title.ratings.tsv.gz'}
+        op_kwargs={'url': 'https://newsapi.org/v2/top-headlines',
+                   'data_entity_name': 'TopHeadlinesUS',
+                   'country': 'us'}
     )
 
     source_to_raw_reddit = PythonOperator(
@@ -53,12 +58,11 @@ with DAG(
         }
     )
 
-    raw_to_formated_imdb = PythonOperator(
+    raw_to_formated_1 = PythonOperator(
         task_id='raw_to_formated_1',
-        python_callable=convert_raw_to_formatted_imdb,
+        python_callable=launch_task,
         provide_context=True,
-        op_kwargs={'file_name': 'title.ratings.tsv.gz',
-                   'data_entity_name': 'MovieRating'}
+        op_kwargs={'task_name': 'raw_to_formated_1'}
     )
 
     raw_to_formated_reddit = PythonOperator(
@@ -116,12 +120,10 @@ with DAG(
     )
 
     add_source_pipeline(
-        source_task=source_to_raw_imdb,
+        source_task=source_to_raw_newsapi,
         transform_task=raw_to_formated_imdb,
         join_task=produce_usage
     )
-
-
 
 
     produce_usage.set_downstream(index_to_elastic)
