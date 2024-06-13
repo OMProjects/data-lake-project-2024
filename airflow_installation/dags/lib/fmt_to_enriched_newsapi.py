@@ -9,20 +9,20 @@ HOME = os.path.expanduser('~')
 DATALAKE_ROOT_FOLDER = HOME + "/datalake/"
 
 
-def convert_formatted_to_refined_newsapi(file_name, data_entity_name):
+def convert_formatted_to_enriched_newsapi(file_name, data_entity_name):
     current_day = date.today().strftime("%Y%m%d")
     FORMATTED_TOPHEADLINES_FOLDER = (DATALAKE_ROOT_FOLDER + "formatted/newsapi/" + data_entity_name + "/"
                                      + current_day + "/")
-    REFINED_TOPHEADLINES_FOLDER = (DATALAKE_ROOT_FOLDER + "refined/newsapi/" + data_entity_name + "/"
-                                   + current_day + "/")
+    enriched_TOPHEADLINES_FOLDER = (DATALAKE_ROOT_FOLDER + "enriched/newsapi/" + data_entity_name + "/"
+                                    + current_day + "/")
 
-    if not os.path.exists(REFINED_TOPHEADLINES_FOLDER):
-        os.makedirs(REFINED_TOPHEADLINES_FOLDER)
+    if not os.path.exists(enriched_TOPHEADLINES_FOLDER):
+        os.makedirs(enriched_TOPHEADLINES_FOLDER)
 
-    refined_data = get_topics_newsapi(FORMATTED_TOPHEADLINES_FOLDER)
+    enriched_data = get_topics_newsapi(FORMATTED_TOPHEADLINES_FOLDER + file_name)
 
-    final_df = pd.DataFrame(data=refined_data)
-    final_df.to_parquet(REFINED_TOPHEADLINES_FOLDER + file_name)
+    final_df = pd.DataFrame(data=enriched_data)
+    final_df.to_parquet(enriched_TOPHEADLINES_FOLDER + file_name)
 
 
 def get_topics_newsapi(file_name):
@@ -45,12 +45,12 @@ def get_topics_newsapi(file_name):
 
         article_data['key_info'] = article_string
 
-    refined_data = keyword_analysis_newsapi(data)
-    return refined_data
+    enriched_data = keyword_analysis_newsapi(data)
+    return enriched_data
 
 
-def keyword_analysis_newsapi(refined_data):
-    for articles in refined_data:
+def keyword_analysis_newsapi(enriched_data):
+    for articles in enriched_data:
         article_data = articles['articles']
         article_string = article_data['key_info']
 
@@ -61,21 +61,12 @@ def keyword_analysis_newsapi(refined_data):
             # noun_tags_clean = [word.replace("'s", "").strip() for word in noun_tags]
 
             nouns = []
-            pos_tags = blob.tags
+            post_tags = blob.tags
 
-            for word, pos_tag in pos_tags:
+            for word, pos_tag in post_tags:
                 if pos_tag.startswith('NN'):
                     nouns.append(word)
 
             article_data['noun_tags'] = nouns
 
-    return refined_data
-
-
-
-
-
-
-
-
-
+    return enriched_data

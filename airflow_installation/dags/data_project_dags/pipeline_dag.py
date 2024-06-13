@@ -3,12 +3,11 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
-
+from lib import fmt_to_enriched_newsapi
 from lib.data_fetcher_thenewsapi import fetch_data_from_newsapi
-# from lib.raw_to_fmt_newsapi import convert_raw_to_formatted_newsapi
-from lib.data_fetcher_theimdb import fetch_data_from_imdb
-from lib.fmt_to_enriched_reddit import fmt_to_enriched_reddit
-from lib.raw_to_fmt_imdb import convert_raw_to_formatted_imdb
+from lib.fmt_to_enriched_newsapi import convert_formatted_to_enriched_newsapi
+from lib.raw_to_fmt_newsapi import convert_raw_to_formatted_newsapi
+from lib.fmt_to_enriched_reddit import convert_fmt_to_enriched_reddit
 from lib.data_fetcher_reddit import fetch_data_from_reddit_news_api
 from lib.raw_to_fmt_reddit import convert_raw_to_formatted_reddit
 
@@ -58,11 +57,15 @@ with DAG(
         }
     )
 
-    raw_to_formated_1 = PythonOperator(
-        task_id='raw_to_formated_1',
-        python_callable=launch_task,
+    raw_to_formated_newsapi = PythonOperator(
+        task_id='raw_to_formated_newsapi',
+        python_callable=convert_raw_to_formatted_newsapi,
         provide_context=True,
-        op_kwargs={'task_name': 'raw_to_formated_1'}
+        op_kwargs={
+            'task_name': 'raw_to_formated_newsapi',
+            'file_name': 'newsapi.json',
+            'data_entity_name': 'TopHeadlinesUS'
+        }
     )
 
     raw_to_formated_reddit = PythonOperator(
@@ -78,12 +81,23 @@ with DAG(
 
     formated_to_enriched_reddit = PythonOperator(
         task_id='formated_to_enriched_reddit',
-        python_callable=fmt_to_enriched_reddit,
+        python_callable=convert_fmt_to_enriched_reddit,
         provide_context=True,
         op_kwargs={
             'task_name': 'formated_to_enriched_reddit',
             'file_name': 'reddit_news_posts.snappy.parquet',
             'data_entity_name': 'NewsPostsReddit'
+        }
+    )
+
+    formated_to_enriched_newsapi = PythonOperator(
+        task_id='formated_to_enriched_newsapi',
+        python_callable=convert_formatted_to_enriched_newsapi,
+        provide_context=True,
+        op_kwargs={
+            'task_name': 'formated_to_enriched_newsapi',
+            'file_name': 'newsapi.snappy.parquet',
+            'data_entity_name': 'TopHeadlinesUS'
         }
     )
 
@@ -121,9 +135,9 @@ with DAG(
 
     add_source_pipeline(
         source_task=source_to_raw_newsapi,
-        transform_task=raw_to_formated_imdb,
+        transform_task=raw_to_formated_newsapi,
+        enrich_task=formated_to_enriched_newsapi,
         join_task=produce_usage
     )
-
 
     produce_usage.set_downstream(index_to_elastic)

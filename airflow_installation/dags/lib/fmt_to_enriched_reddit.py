@@ -7,7 +7,7 @@ HOME = os.path.expanduser('~')
 DATALAKE_ROOT_FOLDER = HOME + "/datalake/"
 
 
-def fmt_to_enriched_reddit(file_name, data_entity_name):
+def convert_fmt_to_enriched_reddit(file_name, data_entity_name):
     current_day = date.today().strftime("%Y%m%d")
     PARQUET_PATH = DATALAKE_ROOT_FOLDER + f"formatted/reddit/{data_entity_name}/" + current_day + "/" + file_name
     ENRICHED_RATING_FOLDER = DATALAKE_ROOT_FOLDER + f"enriched/reddit/{data_entity_name}/" + current_day + "/"
