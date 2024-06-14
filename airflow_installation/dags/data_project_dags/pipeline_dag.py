@@ -3,7 +3,6 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
-from lib import fmt_to_enriched_newsapi
 from lib.data_fetcher_thenewsapi import fetch_data_from_newsapi
 from lib.fmt_to_enriched_newsapi import convert_formatted_to_enriched_newsapi
 from lib.raw_to_fmt_newsapi import convert_raw_to_formatted_newsapi
