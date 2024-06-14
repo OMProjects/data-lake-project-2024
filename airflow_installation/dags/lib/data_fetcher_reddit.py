@@ -34,7 +34,7 @@ def fetch_data_from_reddit_news_bs4():
     print(post)
 
 
-def fetch_data_from_reddit_news_api(subreddit="news", limit=10):
+def fetch_data_from_reddit_news_api(subreddit="worldnews", limit=10):
     current_day = date.today().strftime("%Y%m%d")
     TARGET_PATH = DATALAKE_ROOT_FOLDER + "raw/reddit/NewsPostsReddit/" + current_day + "/"
     if not os.path.exists(TARGET_PATH):
@@ -70,5 +70,5 @@ def fetch_data_from_reddit_news_api(subreddit="news", limit=10):
 
         news_posts.append(sub)
 
-    with open(TARGET_PATH + f"reddit_{subreddit}_posts.json", "w") as fp:
+    with open(TARGET_PATH + f"reddit_news_posts.json", "w") as fp:
         json.dump(news_posts, fp)

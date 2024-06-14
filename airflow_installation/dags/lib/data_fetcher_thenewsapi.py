@@ -11,7 +11,6 @@ DATALAKE_ROOT_FOLDER = HOME + "/datalake/"
 
 
 def fetch_data_from_newsapi(url, data_entity_name, country):
-
     params = {
         "country": country,
         "category": "general",
@@ -38,5 +37,3 @@ def store_newsapi_data(news, data_entity_name):
 
     f = open(TARGET_PATH + "newsapi.json", 'w+')
     f.write(json.dumps(news, indent=4))
-
-

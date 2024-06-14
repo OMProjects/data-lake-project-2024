@@ -1,14 +1,10 @@
-from lib.data_fetcher_reddit import fetch_data_from_reddit_news_api, fetch_data_from_reddit_news_bs4
+from lib.data_fetcher_reddit import fetch_data_from_reddit_news_api
 from lib.fmt_to_enriched_reddit import convert_fmt_to_enriched_reddit
 from lib.raw_to_fmt_reddit import convert_raw_to_formatted_reddit
 
 
-def test_fetch_data_from_reddit_news_bs4():
-    fetch_data_from_reddit_news_bs4()
-
-
 def test_fetch_data_from_reddit_news_api():
-    fetch_data_from_reddit_news_api()
+    fetch_data_from_reddit_news_api(limit=20)
 
 
 def test_raw_to_fmt_reddit():

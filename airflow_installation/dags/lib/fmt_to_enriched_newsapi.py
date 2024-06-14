@@ -21,7 +21,7 @@ def convert_formatted_to_enriched_newsapi(file_name, data_entity_name):
 
     df = pd.read_parquet(FORMATTED_TOPHEADLINES_FOLDER + file_name)
 
-    def keyword_analysis(data):
+    def sentiment_analysis(data):
         if data["title"] and data["description"]:
             article_string = data["title"] + ' ' + data["description"]
         elif data["title"]:
@@ -43,8 +43,11 @@ def convert_formatted_to_enriched_newsapi(file_name, data_entity_name):
 
         data['noun_tags'] = [n.lower() for n in nouns if len(n) > 1]
 
+        data["sentiment_polarity"] = blob.sentiment.polarity
+        data["sentiment_subjectivity"] = blob.sentiment.subjectivity
+
         return data
 
-    df = df.apply(keyword_analysis, axis=1)
+    df = df.apply(sentiment_analysis, axis=1)
 
     df.to_parquet(enriched_TOPHEADLINES_FOLDER + file_name)

@@ -3,13 +3,13 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
+from lib.produce_usage import combine_top_news_polarity
 from lib.data_fetcher_thenewsapi import fetch_data_from_newsapi
 from lib.fmt_to_enriched_newsapi import convert_formatted_to_enriched_newsapi
 from lib.raw_to_fmt_newsapi import convert_raw_to_formatted_newsapi
 from lib.fmt_to_enriched_reddit import convert_fmt_to_enriched_reddit
 from lib.data_fetcher_reddit import fetch_data_from_reddit_news_api
 from lib.raw_to_fmt_reddit import convert_raw_to_formatted_reddit
-
 
 with DAG(
         'pipeline_dag',
@@ -40,9 +40,11 @@ with DAG(
         task_id='source_to_raw_newsapi',
         python_callable=fetch_data_from_newsapi,
         provide_context=True,
-        op_kwargs={'url': 'https://newsapi.org/v2/top-headlines',
-                   'data_entity_name': 'TopHeadlinesUS',
-                   'country': 'us'}
+        op_kwargs={
+            'url': 'https://newsapi.org/v2/top-headlines',
+            'data_entity_name': 'TopHeadlinesUS',
+            'country': 'us'
+        }
     )
 
     source_to_raw_reddit = PythonOperator(
@@ -51,8 +53,8 @@ with DAG(
         provide_context=True,
         op_kwargs={
             'task_name': 'source_to_raw_reddit',
-            'limit': 10,
-            'subreddit': 'news'
+            'limit': 20,
+            'subreddit': 'worldnews'
         }
     )
 
@@ -102,9 +104,11 @@ with DAG(
 
     produce_usage = PythonOperator(
         task_id='produce_usage',
-        python_callable=launch_task,
+        python_callable=combine_top_news_polarity,
         provide_context=True,
-        op_kwargs={'task_name': 'produce_usage'}
+        op_kwargs={
+            'task_name': 'produce_usage'
+        }
     )
 
     index_to_elastic = PythonOperator(
