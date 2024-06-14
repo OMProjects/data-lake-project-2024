@@ -18,10 +18,10 @@ def convert_fmt_to_enriched_reddit(file_name, data_entity_name):
     df = pd.read_parquet(PARQUET_PATH)
 
     def post_sentiment_analysis(data):
-
         comment_polarity = []
         comment_subjectivity = []
-        comment_nouns = set()
+        comment_nouns = []
+        article_nouns = []
         comment_polarity_by_score = []
 
         new_comments = []
@@ -39,8 +39,11 @@ def convert_fmt_to_enriched_reddit(file_name, data_entity_name):
             comment_polarity.append(blob.sentiment.polarity)
             comment_subjectivity.append(blob.sentiment.subjectivity)
 
-            for noun in blob.noun_phrases:
-                comment_nouns.add(noun)
+            for word, pos_tag in blob.tags:
+                if pos_tag.startswith('NN') and word not in comment_nouns:
+                    comment_nouns.append(word)
+
+            comment_nouns = [n.lower() for n in comment_nouns if len(n) > 1]
 
         data["comments"] = new_comments
         data["comment_nouns"] = comment_nouns
@@ -49,6 +52,15 @@ def convert_fmt_to_enriched_reddit(file_name, data_entity_name):
         data["average_comment_polarity_by_score"] = sum(comment_polarity_by_score) / len(comment_polarity_by_score)
         data["total_comment_polarity_by_score"] = sum(comment_polarity_by_score)
         data["comment_amount"] = len(data["comments"])
+
+        blob_article = TextBlob(data["title"])
+        for word, pos_tag in blob_article.tags:
+            if pos_tag.startswith('NN') and word not in article_nouns:
+                article_nouns.append(word)
+
+        article_nouns = [n.lower() for n in article_nouns if len(n) > 1]
+
+        data["article_nouns"] = article_nouns
 
         return data
 

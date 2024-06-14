@@ -38,12 +38,10 @@ def convert_formatted_to_enriched_newsapi(file_name, data_entity_name):
         post_tags = blob.tags
 
         for word, pos_tag in post_tags:
-            if pos_tag.startswith('NN'):
+            if pos_tag.startswith('NN') and word not in nouns:
                 nouns.append(word)
 
-        nouns = [n.lower() for n in nouns if len(n) > 1]
-
-        data['noun_tags'] = nouns
+        data['noun_tags'] = [n.lower() for n in nouns if len(n) > 1]
 
         return data
 
