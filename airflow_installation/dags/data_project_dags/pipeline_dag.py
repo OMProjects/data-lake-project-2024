@@ -119,14 +119,10 @@ with DAG(
     )
 
 
-    def add_source_pipeline(source_task=None, transform_task=None, enrich_task=None, join_task=None):
-        if enrich_task is None:
-            source_task.set_downstream(transform_task)
-            join_task.set_upstream(transform_task)
-        else:
-            source_task.set_downstream(transform_task)
-            transform_task.set_downstream(enrich_task)
-            join_task.set_upstream(enrich_task)
+    def add_source_pipeline(source_task, transform_task, enrich_task, join_task):
+        source_task.set_downstream(transform_task)
+        transform_task.set_downstream(enrich_task)
+        join_task.set_upstream(enrich_task)
 
 
     add_source_pipeline(
