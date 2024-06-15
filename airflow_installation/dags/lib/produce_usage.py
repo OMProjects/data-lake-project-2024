@@ -35,17 +35,6 @@ def combine_top_news_polarity(opt_date=None):
     reddit_rdd = spark.read.parquet(ENRICHED_REDDIT_PATH).rdd
     newsapi_rdd = spark.read.parquet(ENRICHED_NEWSAPI_PATH).rdd
 
-    print()
-    # reddit_rdd.summary().show()
-    # reddit_rdd.toPandas().info()
-    # print()
-    # newsapi_rdd.summary().show()
-    # newsapi_rdd.toPandas().info()
-    # print("Reddit")
-    # reddit_rdd.toPandas().apply(lambda x: print(x["average_comment_polarity"], x["article_nouns"], x["url"]), axis=1)
-    # print("News Api")
-    # newsapi_rdd.toPandas().apply(lambda x: print(x["noun_tags"], x["url"]), axis=1)
-
     top_news_topics = (
         newsapi_rdd
         .flatMap(lambda x: x["noun_tags"])
