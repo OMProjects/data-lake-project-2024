@@ -1,5 +1,5 @@
 import os
-from datetime import date
+from datetime import date, datetime, timezone
 
 from pyspark.sql import SparkSession
 
@@ -7,11 +7,26 @@ HOME = os.path.expanduser('~')
 DATALAKE_ROOT_FOLDER = HOME + "/datalake/"
 
 
-def combine_top_news_polarity():
-    current_day = date.today().strftime("%Y%m%d")
-    ENRICHED_REDDIT_PATH = DATALAKE_ROOT_FOLDER + f"enriched/reddit/NewsPostsReddit/" + current_day + "/reddit_news_posts.snappy.parquet"
-    ENRICHED_NEWSAPI_PATH = DATALAKE_ROOT_FOLDER + f"enriched/newsapi/TopHeadlinesUS/" + current_day + "/newsapi.snappy.parquet"
-    USAGE_DEST = DATALAKE_ROOT_FOLDER + f"usage/news_topics_polarity/" + current_day + "/"
+def combine_top_news_polarity(opt_date=None):
+    if opt_date is None:
+        current = datetime(
+            year=date.today().year,
+            month=date.today().month,
+            day=date.today().day,
+            tzinfo=timezone.utc
+        )
+    else:
+        current = datetime.strptime(opt_date, "%Y%m%d")
+        current = datetime(
+            year=current.year,
+            month=current.month,
+            day=current.day,
+            tzinfo=timezone.utc
+        )
+    current_str = current.strftime("%Y%m%d")
+    ENRICHED_REDDIT_PATH = DATALAKE_ROOT_FOLDER + f"enriched/reddit/NewsPostsReddit/" + current_str + "/reddit_news_posts.snappy.parquet"
+    ENRICHED_NEWSAPI_PATH = DATALAKE_ROOT_FOLDER + f"enriched/newsapi/TopHeadlinesUS/" + current_str + "/newsapi.snappy.parquet"
+    USAGE_DEST = DATALAKE_ROOT_FOLDER + f"usage/news_topics_polarity/" + current_str + "/"
 
     if not os.path.exists(USAGE_DEST):
         os.makedirs(USAGE_DEST)

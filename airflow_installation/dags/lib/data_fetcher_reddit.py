@@ -1,9 +1,7 @@
 import json
 import os
-from datetime import date
+from datetime import date, timezone, datetime
 
-import requests
-from bs4 import BeautifulSoup
 import praw
 import lib.env as env
 
@@ -11,32 +9,15 @@ HOME = os.path.expanduser('~')
 DATALAKE_ROOT_FOLDER = HOME + "/datalake/"
 
 
-def fetch_data_from_reddit_news_bs4():
-    current_day = date.today().strftime("%Y%m%d")
-    TARGET_PATH = DATALAKE_ROOT_FOLDER + "raw/reddit/NewsPostsReddit/" + current_day + "/"
-    if not os.path.exists(TARGET_PATH):
-        os.makedirs(TARGET_PATH)
-
-    url = "https://www.reddit.com/r/news/"
-    page = requests.get(url)
-
-    soup = BeautifulSoup(page.content, "html.parser")
-    # print(soup)
-    articles = soup.findAll("a", {"slot": "full-post-link"})
-    for a in articles:
-        print("---")
-        print(a["href"])
-
-    post = "https://www.reddit.com" + "/r/news/comments/1ddgq41/president_joe_bidens_son_hunter_biden_is/"
-    post = requests.get(post)
-    post = BeautifulSoup(post.content, "html.parser")
-
-    print(post)
-
-
 def fetch_data_from_reddit_news_api(subreddit="worldnews", limit=10):
-    current_day = date.today().strftime("%Y%m%d")
-    TARGET_PATH = DATALAKE_ROOT_FOLDER + "raw/reddit/NewsPostsReddit/" + current_day + "/"
+    current = datetime(
+        year=date.today().year,
+        month=date.today().month,
+        day=date.today().day,
+        tzinfo=timezone.utc
+    )
+    current_str = current.strftime("%Y%m%d")
+    TARGET_PATH = DATALAKE_ROOT_FOLDER + "raw/reddit/NewsPostsReddit/" + current_str + "/"
     if not os.path.exists(TARGET_PATH):
         os.makedirs(TARGET_PATH)
 

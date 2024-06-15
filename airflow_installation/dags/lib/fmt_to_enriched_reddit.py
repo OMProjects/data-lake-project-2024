@@ -1,19 +1,35 @@
 import os
 import pandas as pd
-from datetime import date
+from datetime import date, timezone, datetime
 from textblob import TextBlob
 
 HOME = os.path.expanduser('~')
 DATALAKE_ROOT_FOLDER = HOME + "/datalake/"
 
 
-def convert_fmt_to_enriched_reddit(file_name, data_entity_name):
-    current_day = date.today().strftime("%Y%m%d")
-    PARQUET_PATH = DATALAKE_ROOT_FOLDER + f"formatted/reddit/{data_entity_name}/" + current_day + "/" + file_name
-    ENRICHED_RATING_FOLDER = DATALAKE_ROOT_FOLDER + f"enriched/reddit/{data_entity_name}/" + current_day + "/"
+def convert_fmt_to_enriched_reddit(file_name, data_entity_name, opt_date=None):
+    if opt_date is None:
+        current = datetime(
+            year=date.today().year,
+            month=date.today().month,
+            day=date.today().day,
+            tzinfo=timezone.utc
+        )
+    else:
+        current = datetime.strptime(opt_date, "%Y%m%d")
+        current = datetime(
+            year=current.year,
+            month=current.month,
+            day=current.day,
+            tzinfo=timezone.utc
+        )
 
-    if not os.path.exists(ENRICHED_RATING_FOLDER):
-        os.makedirs(ENRICHED_RATING_FOLDER)
+    current_str = current.strftime("%Y%m%d")
+    PARQUET_PATH = DATALAKE_ROOT_FOLDER + f"formatted/reddit/{data_entity_name}/" + current_str + "/" + file_name
+    ENRICHED_POSTS_FOLDER = DATALAKE_ROOT_FOLDER + f"enriched/reddit/{data_entity_name}/" + current_str + "/"
+
+    if not os.path.exists(ENRICHED_POSTS_FOLDER):
+        os.makedirs(ENRICHED_POSTS_FOLDER)
 
     df = pd.read_parquet(PARQUET_PATH)
 
@@ -66,4 +82,4 @@ def convert_fmt_to_enriched_reddit(file_name, data_entity_name):
 
     df = df.apply(post_sentiment_analysis, axis=1)
 
-    df.to_parquet(ENRICHED_RATING_FOLDER + file_name)
+    df.to_parquet(ENRICHED_POSTS_FOLDER + file_name)

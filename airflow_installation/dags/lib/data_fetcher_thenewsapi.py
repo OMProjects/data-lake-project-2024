@@ -1,6 +1,6 @@
 import json
 import os
-from datetime import date
+from datetime import date, timezone, datetime
 
 import requests
 
@@ -30,8 +30,14 @@ def fetch_data_from_newsapi(url, data_entity_name, country):
 
 
 def store_newsapi_data(news, data_entity_name):
-    current_day = date.today().strftime("%Y%m%d")
-    TARGET_PATH = DATALAKE_ROOT_FOLDER + f"raw/newsapi/" + data_entity_name + "/" + current_day + "/"
+    current = datetime(
+        year=date.today().year,
+        month=date.today().month,
+        day=date.today().day,
+        tzinfo=timezone.utc
+    )
+    current_str = current.strftime("%Y%m%d")
+    TARGET_PATH = DATALAKE_ROOT_FOLDER + f"raw/newsapi/" + data_entity_name + "/" + current_str + "/"
     if not os.path.exists(TARGET_PATH):
         os.makedirs(TARGET_PATH)
 
