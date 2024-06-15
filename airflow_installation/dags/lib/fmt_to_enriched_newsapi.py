@@ -19,54 +19,35 @@ def convert_formatted_to_enriched_newsapi(file_name, data_entity_name):
     if not os.path.exists(enriched_TOPHEADLINES_FOLDER):
         os.makedirs(enriched_TOPHEADLINES_FOLDER)
 
-    enriched_data = get_topics_newsapi(FORMATTED_TOPHEADLINES_FOLDER + file_name)
+    df = pd.read_parquet(FORMATTED_TOPHEADLINES_FOLDER + file_name)
 
-    final_df = pd.DataFrame(data=enriched_data)
-    final_df.to_parquet(enriched_TOPHEADLINES_FOLDER + file_name)
-
-
-def get_topics_newsapi(file_name):
-    df = pd.read_parquet(file_name)
-    json_data = df.to_json(orient='records')
-    data = json.loads(json_data)
-
-    for articles in data:
-        article_data = articles['articles']
-        title = article_data['title']
-        description = article_data['description']
-        if title and description:
-            article_string = title + ' ' + description
-        elif title:
-            article_string = title
-        elif description:
-            article_string = description
+    def sentiment_analysis(data):
+        if data["title"] and data["description"]:
+            article_string = data["title"] + ' ' + data["description"]
+        elif data["title"]:
+            article_string = data["title"]
+        elif data["description"]:
+            article_string = data["description"]
         else:
             article_string = ''
 
-        article_data['key_info'] = article_string
+        data["key_info"] = article_string
 
-    enriched_data = keyword_analysis_newsapi(data)
-    return enriched_data
+        blob = TextBlob(article_string)
+        nouns = []
+        post_tags = blob.tags
 
+        for word, pos_tag in post_tags:
+            if pos_tag.startswith('NN') and word not in nouns:
+                nouns.append(word)
 
-def keyword_analysis_newsapi(enriched_data):
-    for articles in enriched_data:
-        article_data = articles['articles']
-        article_string = article_data['key_info']
+        data['noun_tags'] = [n.lower() for n in nouns if len(n) > 1]
 
-        if article_string:
-            blob = TextBlob(article_string)
+        data["sentiment_polarity"] = blob.sentiment.polarity
+        data["sentiment_subjectivity"] = blob.sentiment.subjectivity
 
-            # noun_tags = blob.noun_phrases
-            # noun_tags_clean = [word.replace("'s", "").strip() for word in noun_tags]
+        return data
 
-            nouns = []
-            post_tags = blob.tags
+    df = df.apply(sentiment_analysis, axis=1)
 
-            for word, pos_tag in post_tags:
-                if pos_tag.startswith('NN'):
-                    nouns.append(word)
-
-            article_data['noun_tags'] = nouns
-
-    return enriched_data
+    df.to_parquet(enriched_TOPHEADLINES_FOLDER + file_name)
