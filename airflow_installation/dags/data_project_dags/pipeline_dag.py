@@ -3,6 +3,7 @@ from datetime import datetime, timedelta
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
+from lib.ingest_to_elastic import ingest_into_elastic
 from lib.produce_usage import combine_top_news_polarity
 from lib.data_fetcher_thenewsapi import fetch_data_from_newsapi
 from lib.fmt_to_enriched_newsapi import convert_formatted_to_enriched_newsapi
@@ -113,7 +114,7 @@ with DAG(
 
     index_to_elastic = PythonOperator(
         task_id='index_to_elastic',
-        python_callable=launch_task,
+        python_callable=ingest_into_elastic,
         provide_context=True,
         op_kwargs={'task_name': 'index_to_elastic'}
     )
